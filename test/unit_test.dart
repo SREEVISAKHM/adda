@@ -18,11 +18,15 @@ void main() {
 
     test('ConfirmViewModel addToSlots', () {
       final selectedSlot = SelectedSlots(
-          date: '2022-01-01', startTime: '10:00', facility: 'club house');
+          date: '2022-01-01',
+          startTime: '10:00',
+          endTime: '11:00',
+          facility: 'club house');
       confirmViewModel!.addToSlots(selectedSlot);
       expect(confirmViewModel?.selectedSlots.length, equals(1));
       expect(confirmViewModel?.selectedSlots.first.date, equals('2022-01-01'));
       expect(confirmViewModel?.selectedSlots.first.startTime, equals('10:00'));
+      expect(confirmViewModel?.selectedSlots.first.endTime, equals('11:00'));
       expect(
           confirmViewModel?.selectedSlots.first.facility, equals('club house'));
     });
