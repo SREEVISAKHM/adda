@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:adda/model/selected_slots.dart';
 import 'package:adda/providers/booking_provider.dart';
 import 'package:adda/providers/confirm_view_provider.dart';
@@ -86,52 +88,92 @@ class _BookingViewState extends ConsumerState<BookingView> {
                   titleColor: Colors.white,
                   color: Colors.lightBlue,
                   onTap: () {
-                    if (ref.watch(bookingProvider).dateValue == 'Choose Date' ||
-                        ref.watch(bookingProvider).startTimeValue ==
+                    DateFormat format = DateFormat("hh:mm");
+                    var bookingProvidervariable = ref.watch(bookingProvider);
+                    if (bookingProvidervariable.dateValue == 'Choose Date' ||
+                        bookingProvidervariable.startTimeValue ==
                             'Choose Time') {
                       showToast('Please choose Date And Time');
                     } else {
-                      var tempSelectedSlot = SelectedSlots(
-                          date: ref.watch(bookingProvider).dateValue,
-                          startTime: DateFormat('hh:mm')
-                              .parse(ref.watch(bookingProvider).startTimeValue)
-                              .hour
-                              .toString(),
+                      SelectedSlots tempSelectedSlot = SelectedSlots(
+                          date: bookingProvidervariable.dateValue,
+                          startTime: bookingProvidervariable.startTimeValue,
+                          endTime: bookingProvidervariable.endTimeValue,
                           facility: widget.facilities[widget.index].facilityName
                               .replaceAll('\n', ' '));
 
-                      var check = ref
-                          .watch(confirmViewProvider)
-                          .selectedSlots
-                          .indexWhere((val) =>
-                              val.date == tempSelectedSlot.date &&
-                              val.startTime == tempSelectedSlot.startTime &&
-                              val.facility == tempSelectedSlot.facility);
+                      var slotList =
+                          ref.watch(confirmViewProvider).selectedSlots;
+
+                      var check = slotList.indexWhere((val) =>
+                          val.date == tempSelectedSlot.date &&
+                          val.startTime == tempSelectedSlot.startTime &&
+                          val.facility == tempSelectedSlot.facility);
 
                       if (check != -1) {
                         showToast(
                             'Slot is already booked , please choose another slot');
                       } else {
-                        ref.read(confirmViewProvider).getTotal(
-                            ref.watch(bookingProvider).startTimeValue,
-                            ref.watch(bookingProvider).endTimeValue,
-                            widget.facilities[widget.index].hourlyPrice);
+                        bool isOverrideEndTime = true;
+                        String bookedTime = '';
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ConfirmationView(
-                              facility: widget
-                                  .facilities[widget.index].facilityName
-                                  .replaceAll('\n', ' '),
-                              date: ref.watch(bookingProvider).dateValue,
-                              time:
-                                  '${ref.watch(bookingProvider).startTimeValue} to ${ref.watch(bookingProvider).endTimeValue}',
-                              startTime:
-                                  ref.watch(bookingProvider).startTimeValue,
+                        for (var slot in slotList) {
+                          if (slot.facility == tempSelectedSlot.facility &&
+                              slot.date == tempSelectedSlot.date) {
+                            if (format.parse(tempSelectedSlot.endTime).isAfter(format.parse(slot.startTime)) &&
+                                    format
+                                        .parse(tempSelectedSlot.startTime)
+                                        .isBefore(
+                                            format.parse(slot.startTime)) ||
+                                format.parse(tempSelectedSlot.startTime).isAfter(format.parse(slot.endTime)) &&
+                                    format
+                                        .parse(tempSelectedSlot.endTime)
+                                        .isAfter(format.parse(slot.endTime)) ||
+                                format.parse(tempSelectedSlot.startTime).isAfter(
+                                        format.parse(slot.startTime)) &&
+                                    format.parse(slot.endTime).isAfter(format
+                                        .parse(tempSelectedSlot.startTime)) ||
+                                format.parse(slot.endTime).isAfter(format.parse(tempSelectedSlot.startTime)) &&
+                                    format
+                                        .parse(tempSelectedSlot.endTime)
+                                        .isAfter(format.parse(slot.endTime))) {
+                              log('hii');
+                              bookedTime +=
+                                  "${slot.startTime} -${slot.endTime} ,";
+
+                              isOverrideEndTime = false;
+                            }
+                          } else {
+                            isOverrideEndTime = true;
+                          }
+                        }
+                        log('$isOverrideEndTime this');
+                        if (isOverrideEndTime) {
+                          ref.read(confirmViewProvider).getTotal(
+                              bookingProvidervariable.startTimeValue,
+                              bookingProvidervariable.endTimeValue,
+                              widget.facilities[widget.index].hourlyPrice);
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ConfirmationView(
+                                facility: widget
+                                    .facilities[widget.index].facilityName
+                                    .replaceAll('\n', ' '),
+                                date: bookingProvidervariable.dateValue,
+                                time:
+                                    '${bookingProvidervariable.startTimeValue} to ${bookingProvidervariable.endTimeValue}',
+                                startTime:
+                                    bookingProvidervariable.startTimeValue,
+                                endTime: bookingProvidervariable.endTimeValue,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        } else {
+                          showToast(
+                              'Slot is Already booked from  $bookedTime  please choose another slot');
+                        }
                       }
                     }
                   },
@@ -203,7 +245,7 @@ class _BookingViewState extends ConsumerState<BookingView> {
 
           break;
         }
-        // showToast('Choose time ahead of current time');
+
         pickEndTime(newStartTime, context, ref);
         break;
       }

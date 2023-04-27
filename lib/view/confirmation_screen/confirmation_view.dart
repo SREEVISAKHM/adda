@@ -6,18 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:adda/view/common/c_appbar.dart';
 import 'package:adda/view/common/custom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../providers/confirm_view_provider.dart';
 
 class ConfirmationView extends ConsumerWidget {
-  final String facility, date, time, startTime;
+  final String facility, date, time, startTime, endTime;
   const ConfirmationView({
     Key? key,
     required this.time,
     required this.facility,
     required this.date,
     required this.startTime,
+    required this.endTime,
   }) : super(key: key);
 
   @override
@@ -102,8 +102,8 @@ class ConfirmationView extends ConsumerWidget {
                 onTap: () {
                   ref.read(confirmViewProvider).addToSlots(SelectedSlots(
                       date: date,
-                      startTime:
-                          DateFormat("hh:mm").parse(startTime).hour.toString(),
+                      startTime: startTime,
+                      endTime: endTime,
                       facility: facility));
                   Navigator.popUntil(context, (route) {
                     if (route is MaterialPageRoute &&

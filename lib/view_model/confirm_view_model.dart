@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:adda/model/selected_slots.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -20,9 +18,7 @@ class ConfirmViewModel extends ChangeNotifier {
     DateTime two = format.parse(endTime);
     var myTime = two.difference(one);
 
-    log(two.difference(one).toString());
     var tempValue = toDouble(myTime);
-    log(tempValue.toString());
 
     var totalValue = ((hourlyPrice) / 60) * tempValue;
     total = totalValue.ceilToDouble();
